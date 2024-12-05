@@ -1,0 +1,115 @@
+/* General Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Body Styling */
+body {
+  background: #1a1a1d; /* Dark crypto-like background */
+  color: #ffffff;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+  padding: 0;
+  font-size: 110%; /* Increase font size by 10% */
+}
+
+/* Container */
+.container {
+  width: 100%;
+  padding: 22px; /* Increased padding */
+  text-align: center;
+  max-width: 1400px;
+  margin: auto;
+}
+
+/* Header */
+header h1 {
+  font-size: 2.2rem; /* Increased header font size */
+  margin-bottom: 11px;
+  color: #00d1ff; /* Neon blue accent */
+  text-shadow: 0 0 11px #00d1ff, 0 0 22px #00d1ff;
+}
+
+header p {
+  font-size: 1.1rem; /* Increased paragraph font size */
+  margin-bottom: 22px;
+  color: #cccccc;
+}
+
+/* Input Container */
+.input-container {
+  margin: 22px 0; /* Increased margin */
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px; /* Increased gap */
+}
+
+/* Input Box */
+input {
+  padding: 16px; /* Increased padding */
+  width: 100%;
+  max-width: 440px; /* Increased max-width */
+  border-radius: 11px; /* Slightly bigger radius */
+  border: none;
+  font-size: 1.1rem; /* Increased input text size */
+  background: #2a2d31;
+  color: #ffffff;
+  outline: none;
+  box-shadow: 0 0 11px rgba(0, 209, 255, 0.5); /* Increased box-shadow size */
+}
+
+/* Button */
+button {
+  padding: 16px 33px; /* Increased padding */
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+  border: none;
+  border-radius: 11px; /* Slightly bigger radius */
+  cursor: pointer;
+  font-size: 1.1rem; /* Increased button text size */
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 16px rgba(0, 209, 255, 0.5); /* Increased box-shadow size */
+}
+
+button:hover {
+  transform: scale(1.1); /* Increased hover scale */
+  box-shadow: 0 9px 22px rgba(0, 209, 255, 0.8); /* Increased hover box-shadow */
+}
+
+/* Graph Area */
+#graph {
+  margin-top: 22px; /* Increased margin-top */
+  width: calc(100% - 22px); /* Take almost the full width with a 10% larger margin */
+  height: 770px; /* Increased graph height */
+  background: #1e1f22;
+  border-radius: 11px; /* Slightly bigger radius */
+  border: 1px solid #2a2d31;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5); /* Increased box-shadow */
+  overflow: hidden;
+  padding: 11px; /* Slightly increased padding */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Neon Glow for Graph */
+#graph:hover {
+  box-shadow: 0 0 22px #00d1ff, 0 0 33px #3a7bd5; /* Increased hover glow size */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  header h1 {
+    font-size: 1.8rem; /* Increased font size for smaller screens */
+  }
+
+  #graph {
+    height: 550px; /* Increased height for smaller screens */
+  }
+}
