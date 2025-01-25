@@ -1,1 +1,1 @@
-To View the Website click here https://koteshmurugan.github.io/Hash_tracer/main.html
+To View the Website click here https://samarth06trivedi.github.io/7th-sem-project/index.html
