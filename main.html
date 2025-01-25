@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ethereum Transactions Graph</title>
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav>
+    <div class="nav-container">
+      <a href="main.html" class="logo">HASH TRACER</a>
+      <ul class="nav-links">
+        <li><a href="main.html">Home</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropbtn">Services ▼</a>
+          <div class="dropdown-content">
+            <a href="index.html">EVM Facts</a>
+            <a href="nft.html">NFT Holdings</a>
+            <a href="Portfolio.html">Portfolio Tracker</a> <!-- Placeholder for future -->
+          </div>
+        </li>
+        <li><button id="connectWalletButton">Connect Wallet</button></li>
+      </ul>
+    </div>
+  </nav>
+  <!-- Main Content -->
+  <div class="container">
+    <header>
+      <h1>Ethereum Transaction Explorer</h1>
+      <p>Visualize transactions as an interactive graph.</p>
+    </header>
+    <div class="input-container">
+      <input type="text" id="ethAddressInput" placeholder="Enter Ethereum Address">
+      <button id="fetch_facts_button" onclick="updateGraph()">Search</button>
+    </div>
+    <div id="loading">Loading...</div>
+    <div id="graph"></div>
+  </div>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="main.js"></script>
+
+    </div>
+  </section>
+
+</body>
+</html>

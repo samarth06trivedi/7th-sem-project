@@ -1,0 +1,211 @@
+/* General Styles */
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #010400; /* Dark background */
+  color: #ffffff; /* White text for visibility */
+}
+/* Navigation Bar */
+nav {
+  width: 100%;
+  background-color: #000000;
+  padding: 1rem;
+  box-shadow: 0 0 15px #00d1ff;
+  position: sticky; /* Keep the navigation bar fixed at the top */
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto; /* Center the navigation bar */
+}
+
+.logo {
+  color: #00d1ff;
+  font-size: 1.8rem; /* Adjusted for visibility */
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.logo:hover {
+  text-shadow: 0 0 15px #00d1ff, 0 0 30px #00d1ff, 0 0 45px #00d1ff; /* Glowing effect */
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+  color: #00d1ff;
+}
+
+/* Dropdown Menu for "Other Services" */
+.dropdown {
+  position: relative;
+}
+
+.dropbtn {
+  color: #ffffff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #010400;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  margin-top: 0.5rem;
+  z-index: 1;
+  border-radius: 5px;
+}
+
+.dropdown-content a {
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  display: block;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.dropdown-content a:hover {
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+.container {
+  text-align: center;
+  
+}
+/* Header */
+header {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+header h1 {
+  font-size: 2rem;
+  color: #00d1ff;
+}
+
+header p {
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+#connectWalletButton {
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#connectWalletButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(58, 123, 213, 0.5);
+}
+/* Input Container */
+.input-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+input[type="text"] {
+  width: 50%;
+  padding: 0.8rem;
+  border-radius: 5px;
+  border: 1px solid #3a7bd5;
+  background-color: #000000;
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+input[type="text"]::placeholder {
+  color: #7a7a7a;
+}
+
+button#fetch_facts_button {
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+button#fetch_facts_button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(58, 123, 213, 0.5);
+}
+
+#loading {
+  display: none;
+  font-size: 20px;
+  color: #333;
+  padding-top: 20px;
+  font-weight: bold;
+}
+
+/* Graph */
+#graph {
+  margin-top: 22px;
+  width: calc(100% - 42px);
+  height: 550px;
+  margin-top: 30px;
+  overflow: hidden;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 11px;
+}
+
+/* About Section */
+/* Loading Spinner */
+#loading {
+  display: none;
+  font-size: 20px;
+  color: #00d1ff;
+  text-align: center;
+  margin-top: 20px;
+  font-weight: bold;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  #interesting_facts {
+    font-size: 1rem;
+    padding: 12px 25px;
+  }
+
+  input[type="text"] {
+    width: 80%;
+  }
+}
+

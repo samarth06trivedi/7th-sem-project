@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio Tracker</title>
+
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+          <a href="main.html" class="logo">HASH TRACER</a>
+          <ul class="nav-links">
+            <li><a href="main.html">Home</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropbtn">Services ▼</a>
+              <div class="dropdown-content">
+                <a href="index.html">EVM Facts</a>
+                <a href="nft.html">NFT Holdings</a>
+                <a href="Portfolio.html" onclick="savePortfolioState() " >Portfolio Tracker</a> <!-- Placeholder for future -->
+              </div>
+            </li>
+            <li><button id="connectWalletButton">Connect Wallet</button></li>
+          </ul>
+        </div>
+      </nav>
+
+  <div class="container">
+    <header>
+      <h1 id="port">Portfolio Tracker</h1>
+      <p>Enter an Ethereum address to view your net worth across blockchains.</p>
+    </header>
+    <div class="input-container">
+      <input type="text" id="ethAddressInput" placeholder="Enter an Ethereum Address">
+      <button id="get_portfolio_button"onclick="fetchPortfolioData()">Get Portfolio</button>
+    </div>
+    <div>
+        <p id="loadingIndicator" style="display:none;">Loading data...</p>
+        <p id="netWorthDisplay" style="display:none;"></p>
+    </div>  
+    </div>
+    <div id="blockchainBreakdown"></div>
+    <div id="visualizeButtonContainer"><button id="visualizeButton" style="display: none;" onclick="redirectToVisualization()">Visualize Portfolio</button>
+    </div>
+  </div>
+  <style>
+
+    body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #010400; /* Dark background */
+  color: #ffffff; /* White text for visibility */
+}
+
+/* Navigation Bar */
+nav {
+  width: 100%;
+  background-color: #000000;
+  padding: 1rem;
+  box-shadow: 0 0 15px #00d1ff;
+  position: sticky; /* Keep the navigation bar fixed at the top */
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto; /* Center the navigation bar */
+}
+
+.logo {
+  color: #00d1ff;
+  font-size: 1.8rem; /* Adjusted for visibility */
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.logo:hover {
+  text-shadow: 0 0 15px #00d1ff, 0 0 30px #00d1ff, 0 0 45px #00d1ff; /* Glowing effect */
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+  color: #00d1ff;
+}
+
+#connectWalletButton {
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  visibility: hidden;
+}
+
+#connectWalletButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(58, 123, 213, 0.5);
+}
+
+/* Dropdown Menu */
+.dropdown {
+  position: relative;
+}
+
+.dropbtn {
+  color: #ffffff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #010400;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  margin-top: 0.5rem;
+  z-index: 1;
+  border-radius: 5px;
+}
+
+.dropdown-content a {
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  display: block;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.dropdown-content a:hover {
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Header */
+header {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+header h1 {
+  font-size: 2rem;
+  color: #00d1ff;
+}
+
+
+/* Input Container */
+.input-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+input[type="text"] {
+  width: 50%;
+  padding: 0.8rem;
+  border-radius: 5px;
+  border: 1px solid #3a7bd5;
+  background-color: #000000;
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+input[type="text"]::placeholder {
+  color: #7a7a7a;
+}
+button#get_portfolio_button {
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+button#get_portfolio_button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(58, 123, 213, 0.5);
+}
+#loadingIndicator {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #00d1ff;
+}
+@media screen and (max-width: 1024px) {
+  .nav-container {
+    flex-wrap: wrap;
+  }
+  input[type="text"] {
+    width: 70%; /* Adjust input field width */
+  }
+}
+
+.logo {
+    font-size: 1.8rem; /* Adjust logo size for smaller screens */
+  }
+
+  @media screen and (max-width: 480px) {
+  .nav-container {
+    flex-direction: column; /* Stack navigation items */
+    align-items: center;
+  }
+
+
+  input[type="text"] {
+    width: 100%; /* Full-width input field */
+  }
+
+  .logo {
+    font-size: 1.2rem;
+  }
+}
+
+    header h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #00d1ff;
+    }
+
+    header p {
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+
+    .search-portfolio {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+    #loadingIndicator {
+      color: #00d1ff;
+      font-size: 1.2rem;
+    }
+
+    #netWorthDisplay {
+      text-align:center;
+      margin-top: 20px;
+      font-size: 1.5rem;
+      color: #00d1ff;
+      font-weight: bold;
+    }
+
+    .blockchain-item {
+      border: 0.35px solid #ffffff;
+      margin-top: 15px;
+      padding: 15px;
+      background: #000000;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .blockchain-title {
+
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #00d1ff;
+    }
+
+    .blockchain-details p {
+
+      color: #cccccc;
+      margin: 5px 0;
+    }
+
+    @media (max-width: 768px) {
+      nav {
+        padding: 8px 0;
+      }
+
+      header p {
+        font-size: 0.9rem;
+      }
+
+      input {
+        width: 250px;
+      }
+
+    }
+    #visualizeButtonContainer{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+    }
+    #visualizeButton {
+
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: none; /* Initially hidden */
+}
+
+#visualizeButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(58, 123, 213, 0.5);
+}
+
+  </style>
+  <script>
+// Check if there is data in localStorage on page load
+window.onload = function () {
+  const isReturningFromVisualize = sessionStorage.getItem('returningFromVisualize');
+
+  if (isReturningFromVisualize) {
+    // Clear the flag to ensure next refresh starts clean
+    sessionStorage.removeItem('returningFromVisualize');
+  } else {
+    // Clear localStorage on a regular refresh or direct visit
+    localStorage.removeItem('portfolioData');
+  }
+
+  const storedData = localStorage.getItem('portfolioData');
+  if (storedData) {
+    const portfolioData = JSON.parse(storedData);
+    filteredBlockchains = portfolioData;
+
+    // Display the net worth and blockchain breakdown
+    displayPortfolioData();
+  }
+};
+
+
+async function fetchPortfolioData() {
+  const ethAddressInput = document.getElementById('ethAddressInput').value.trim();
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  const netWorthDisplay = document.getElementById('netWorthDisplay');
+  const blockchainBreakdown = document.getElementById('blockchainBreakdown');
+
+  // Clear previous results
+  netWorthDisplay.style.display = 'none';
+  netWorthDisplay.textContent = '';
+  blockchainBreakdown.innerHTML = '';
+
+  if (!ethAddressInput) {
+    alert('Please enter a valid Ethereum address.');
+    return;
+  }
+
+  loadingIndicator.style.display = 'block'; // Show loading text
+
+  const apiUrl = `https://openapiv1.coinstats.app/wallet/balances?address=${ethAddressInput}&networks=all`;
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'X-API-KEY': 'zv8R+W/5jzIXxS4CFWfYSfBDasMjEMxw+00Su0RMhEE=',
+        accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    loadingIndicator.style.display = 'none'; // Hide loading text
+
+    if (data.length > 0) {
+      let totalNetWorth = 0;
+      filteredBlockchains = []; // Clear global array
+
+      // Loop through each blockchain
+      data.forEach((blockchain) => {
+        let blockchainNetWorth = 0;
+
+        // Loop through each token on the blockchain
+        blockchain.balances.forEach((balance) => {
+          const tokenAmount = balance.amount;
+          const tokenPrice = balance.price;
+
+          // Calculate the value of each token and add to blockchain's net worth
+          blockchainNetWorth += tokenAmount * tokenPrice;
+        });
+
+        // Only add blockchain to the list if worth >= $1
+        if (blockchainNetWorth >= 1) {
+          filteredBlockchains.push({
+            blockchain: blockchain.blockchain,
+            netWorth: blockchainNetWorth,
+            balances: blockchain.balances,
+          });
+          totalNetWorth += blockchainNetWorth;
+        }
+      });
+      // Sort blockchains by net worth in ascending order
+      filteredBlockchains.sort((a, b) => b.netWorth - a.netWorth);
+
+      // Display the total net worth
+      netWorthDisplay.style.display = 'block';
+      netWorthDisplay.textContent = `Total Net Worth: $${formatNumber(totalNetWorth)}`;
+
+      // Display the blockchain breakdown list
+// Loop through each blockchain
+filteredBlockchains.forEach((blockchain) => {
+  const blockchainItem = document.createElement('div');
+  blockchainItem.className = 'blockchain-item';
+  blockchainItem.innerHTML = `
+  <h3 class="blockchain-title" onclick="toggleBlockchainDetails('${blockchain.blockchain}')">
+    ${blockchain.blockchain} - $${formatNumber(blockchain.netWorth)}
+  </h3>
+  <div id="${blockchain.blockchain}" class="blockchain-details" style="display:none;">
+    <p>Click to view the tokens in this blockchain</p>
+    <div id="${blockchain.blockchain}-tokens" style="display:none;"></div>
+  </div>
+`;
+
+
+  blockchainBreakdown.appendChild(blockchainItem);
+
+  // Now, for each blockchain, render the token details with the formatNumber function applied
+  const tokenContainer = document.getElementById(`${blockchain.blockchain}-tokens`);
+
+  blockchain.balances.forEach((balance) => {
+    const tokenAmountFormatted = formatNumber(balance.amount); // Apply formatNumber here to the token amount
+    const tokenElement = document.createElement('p');
+    tokenElement.innerHTML = `${balance.symbol}: ${tokenAmountFormatted} (${formatNumber(balance.amount * balance.price)} USD)`;
+    tokenContainer.appendChild(tokenElement);
+  });
+});
+
+      document.getElementById('visualizeButton').style.display = 'block';
+
+      // Save the portfolio data in localStorage for going back
+      localStorage.setItem('portfolioData', JSON.stringify(filteredBlockchains));
+    } else {
+      netWorthDisplay.style.display = 'block';
+      netWorthDisplay.textContent = 'No data found.';
+    }
+  } catch (error) {
+    console.error('Error fetching portfolio data:', error);
+    loadingIndicator.style.display = 'none'; // Hide loading text
+    netWorthDisplay.style.display = 'block';
+    netWorthDisplay.textContent = 'Failed to fetch data. Please try again.';
+  }
+}
+
+// Redirect to visualization page
+function redirectToVisualization() {
+  if (filteredBlockchains.length > 0) {
+    // Save the portfolio data in localStorage
+    localStorage.setItem('portfolioData', JSON.stringify(filteredBlockchains));
+
+    // Set flag in sessionStorage to indicate return from visualize
+    sessionStorage.setItem('returningFromVisualize', 'true');
+
+    // Redirect to the visualization page
+    window.location.href = 'visualize.html';
+  } else {
+    alert('No portfolio data available to visualize.');
+  }
+  // Function to restore the saved state on page load
+function restorePortfolioState() {
+  const savedData = JSON.parse(localStorage.getItem('portfolioData') || '[]');
+  if (savedData.length > 0) {
+    portfolioData = savedData;
+    renderPortfolioVisualization(); // Re-render visualization with restored data
+  } else {
+    alert('No saved portfolio data found.');
+  }
+}
+
+// Call restorePortfolioState() when the page loads
+window.onload = restorePortfolioState;
+
+}
+function toggleBlockchainDetails(blockchainName) {
+  const blockchainDetailsDiv = document.getElementById(blockchainName);
+
+  if (blockchainDetailsDiv.style.display === 'none') {
+    // Find the blockchain data
+    const blockchainData = filteredBlockchains.find(b => b.blockchain === blockchainName);
+
+    if (blockchainData) {
+      // Sort the balances by descending value (amount * price)
+      const sortedBalances = blockchainData.balances.sort((a, b) => 
+        (b.amount * b.price) - (a.amount * a.price)
+      );
+
+      // Generate HTML content for the sorted tokens
+  const tokenDetails = sortedBalances.map(balance => {
+  const amount = parseFloat(balance.amount) || 0;
+  const price = parseFloat(balance.price) || 0;
+  return `
+    <p>
+      <strong>${balance.symbol}</strong>: 
+      <strong>${formatNumber(amount)}</strong>, 
+      Value: <strong>$${formatNumber(amount * price)}</strong>
+    </p>`;
+}).join('');
+
+
+
+      // Set the inner HTML with the token details
+      blockchainDetailsDiv.innerHTML = tokenDetails;
+    }
+
+    // Show the blockchain details
+    blockchainDetailsDiv.style.display = 'block';
+  } else {
+    // Hide the blockchain details
+    blockchainDetailsDiv.style.display = 'none';
+  }
+  
+}
+
+function formatNumber(num) {
+  if (isNaN(num) || num === null || num === undefined) {
+    return "0.00"; // Fallback for invalid numbers
+  }
+  num = parseFloat(num); // Ensure num is a valid float
+  if (num >= 1.0e9) {
+    return (num / 1.0e9).toFixed(2) + 'B';
+  } else if (num >= 1.0e6) {
+    return (num / 1.0e6).toFixed(2) + 'M';
+  } else if (num >= 1.0e3) {
+    return (num / 1.0e3).toFixed(2) + 'K';
+  } else {
+    if (num < 0.1){
+      return num.toFixed(7);
+    }
+    return num.toFixed(2);
+    
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio Visualization</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: #010400;
+      color: #ffffff;
+    }
+    nav {
+  width: 100%;
+  background-color: #000000;
+  padding: 1rem;
+  box-shadow: 0 0 15px #00d1ff;
+  position: sticky; /* Keep the navigation bar fixed at the top */
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-container {
+display: flex;
+justify-content:space-between;
+align-items: center;
+max-width: 1200px;
+margin: auto;
+}
+.logo {
+  color: #00d1ff;
+  font-size: 1.8rem; /* Adjusted for visibility */
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+.logo:hover {
+  text-shadow: 0 0 15px #00d1ff, 0 0 30px #00d1ff, 0 0 45px #00d1ff; /* Glowing effect */
+}
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+}
+.nav-links a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+}
+.nav-links a:hover {
+  color: #00d1ff;
+}
+#connectWalletButton {
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  visibility: hidden;
+}
+
+#connectWalletButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(58, 123, 213, 0.5);
+}
+/* Dropdown Menu */
+.dropdown {
+  position: relative;
+}
+
+.dropbtn {
+  color: #ffffff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #010400;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  margin-top: 0.5rem;
+  z-index: 1;
+  border-radius: 5px;
+}
+
+.dropdown-content a {
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  display: block;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.dropdown-content a:hover {
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+header {
+  width: 100%;
+  text-align: center; /* Center-align the text */
+  margin: 2rem 0; /* Add spacing above and below */
+}
+
+header h1 {
+  margin: 0;
+  color: #00d1ff; /* Match the glowing theme */
+  text-shadow: 0 0 1px #00d1ff, 0 0 2px #00d1ff,  /* Glowing effect */
+}
+
+    #chart {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 50px;
+    }
+    #legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin: 5px 15px;
+      transition: transform 0.3s, background-color 0.3s;
+    }
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    svg {
+      overflow: visible;
+    }
+  </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="logo">HASH TRACER</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropbtn">Services ▼</a>
+                    <div class="dropdown-content">
+                        <a href="index.html">EVM Facts</a>
+                        <a href="nft.html">NFT Holdings</a>
+                        <a href="Portfolio.html" onclick="savePortfolioState()">Portfolio Tracker</a>
+                    </div>
+                </li>
+                <li><button id="connectWalletButton">Connect Wallet</button></li>
+            </ul>
+        </div>
+    </nav>
+    <header>
+        <h1>Portfolio Visualization</h1>
+    </header>
+  <div id="chart"></div>
+  <div id="legend"></div>
+
+  <script>
+    // Function to save the current state of the portfolio tracker
+    function savePortfolioState() {
+      // Optionally save any additional data to localStorage here if needed.
+      // For example, if there are filters, selections, or other settings on the page:
+      localStorage.setItem('portfolioData', JSON.stringify(portfolioData));
+    }
+  
+    // Function to restore the saved state on page load
+    function restorePortfolioState() {
+      // Retrieve portfolio data from localStorage
+      const savedData = JSON.parse(localStorage.getItem('portfolioData') || '[]');
+      if (savedData.length > 0) {
+        // Replace portfolioData variable with saved data
+        portfolioData = savedData;
+  
+        // Re-render the chart and legend
+        renderPortfolioVisualization();
+      } else {
+        alert('No saved portfolio data found.');
+      }
+    }
+  
+    // Call restorePortfolioState() when the page loads
+    window.onload = restorePortfolioState;
+  
+    // Function to render portfolio visualization (same code used in your script)
+    function renderPortfolioVisualization() {
+  // Clear previous chart and legend content
+  document.getElementById('chart').innerHTML = '';
+  document.getElementById('legend').innerHTML = '';
+
+  // Calculate the total net worth
+  const totalNetWorth = portfolioData.reduce((sum, item) => sum + item.netWorth, 0);
+
+  // Prepare the data with percentages
+  const data = portfolioData.map((item) => ({
+    name: item.blockchain,
+    value: item.netWorth,
+    percentage: ((item.netWorth / totalNetWorth) * 100).toFixed(2), // Calculate percentage
+  }));
+
+  const width = 300, height = 300, radius = Math.min(width, height) / 2;
+
+  const svg = d3.select('#chart')
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height)
+    .append('g')
+    .attr('transform', `translate(${width / 2}, ${height / 2})`);
+
+  const color = d3.scaleOrdinal(d3.schemeCategory10);
+  const pie = d3.pie().value((d) => d.value);
+  const dataReady = pie(data);
+  const arc = d3.arc().innerRadius(0).outerRadius(radius);
+
+  const legend = d3.select('#legend');
+  const legendItems = {};
+
+  // Create legend with percentages
+  dataReady.forEach((d) => {
+    const legendItem = legend.append('div').attr('class', 'legend-item');
+    legendItem
+      .append('div')
+      .attr('class', 'legend-color')
+      .style('background-color', color(d.data.name));
+    legendItem.append('span').text(
+      `${d.data.name} - $${formatNumber(d.data.value)} (${d.data.percentage}%)`
+    );
+    legendItems[d.data.name] = legendItem.node();
+  });
+
+  // Create pie chart
+  svg.selectAll('path')
+    .data(dataReady)
+    .enter()
+    .append('path')
+    .attr('d', arc)
+    .attr('fill', (d) => color(d.data.name))
+    .attr('stroke', '#000000')
+    .style('stroke-width', '0.5px')
+    .style('opacity', 0.8)
+    .on('mouseover', function (event, d) {
+      const lightenedColor = d3.color(color(d.data.name)).brighter(0.5);
+      d3.select(this).attr('fill', lightenedColor);
+
+      const legendItem = legendItems[d.data.name];
+      if (legendItem) {
+        legendItem.querySelector('.legend-color').style.backgroundColor = lightenedColor;
+        legendItem.style.transform = 'scale(1.1)';
+      }
+    })
+    .on('mouseout', function (event, d) {
+      d3.select(this).attr('fill', color(d.data.name));
+      const legendItem = legendItems[d.data.name];
+      if (legendItem) {
+        legendItem.querySelector('.legend-color').style.backgroundColor = color(d.data.name);
+        legendItem.style.transform = 'scale(1)';
+      }
+    });
+
+  function formatNumber(num) {
+    if (isNaN(num) || num === null || num === undefined) {
+      return "0.00"; // Fallback for invalid numbers
+    }
+    num = parseFloat(num); // Ensure num is a valid float
+    if (num >= 1.0e9) {
+      return (num / 1.0e9).toFixed(2) + 'B';
+    } else if (num >= 1.0e6) {
+      return (num / 1.0e6).toFixed(2) + 'M';
+    } else if (num >= 1.0e3) {
+      return (num / 1.0e3).toFixed(2) + 'K';
+    } else {
+      return num.toFixed(2);
+    }
+  }
+}
+
+
+  </script>
+  
+</body>
+</html>

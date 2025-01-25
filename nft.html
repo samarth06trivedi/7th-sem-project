@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HASH TRACER - NFT Holdings</title>
+</head>
+<body>
+  <nav>
+    <div class="nav-container">
+      <a href="main.html" class="logo">HASH TRACER</a>
+      <ul class="nav-links">
+        <li><a href="main.html">Home</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropbtn">Services ▼</a>
+          <div class="dropdown-content">
+            <a href="index.html">EVM Facts</a>
+            <a href="nft.html">NFT Holdings</a>
+            <a href="Portfolio.html">Portfolio Tracker</a>
+          </div>
+        </li>
+        <li><button id="connectWalletButton">Connected</button></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container">
+    <header>
+      <h1>NFT Holdings</h1>
+      <p>Enter an Ethereum address to see all its NFTs and their total value in Ether.</p>
+    </header>
+
+    <div class="input-container">
+      <input type="text" id="ethAddressInput" placeholder="Enter an Ethereum Address">
+      <button id="fetchNFTsButton">Get NFTs</button>
+    </div>
+
+    <div id="loadingIndicator" style="display: none; text-align: center;">Loading...</div>
+    <div id="totalValue" style="display: none; text-align: center;"></div>
+    <div id="nftDisplay" class="grid"></div>
+    <div id="pagination" style="display: none; text-align: center; margin: 2rem 0;">
+      <button id="firstPageButton">First</button>
+      <button id="prevPageButton" disabled>Previous</button>
+      <span id="currentPage">Page 1</span>
+      <button id="nextPageButton">Next</button>
+      <button id="lastPageButton">Last</button>
+
+    </div>
+  </div>
+
+</body>
+</html>
+
+<style>
+/* General Reset */
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #010400; /* Dark background */
+  color: #ffffff; /* White text for visibility */
+}
+
+/* Navigation Bar */
+nav {
+  width: 100%;
+  background-color: #000000;
+  padding: 1rem;
+  box-shadow: 0 0 15px #00d1ff;
+  position: sticky; /* Keep the navigation bar fixed at the top */
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto; /* Center the navigation bar */
+}
+
+.logo {
+  color: #00d1ff;
+  font-size: 1.8rem; /* Adjusted for visibility */
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.logo:hover {
+  text-shadow: 0 0 15px #00d1ff, 0 0 30px #00d1ff, 0 0 45px #00d1ff; /* Glowing effect */
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+  color: #00d1ff;
+}
+
+#connectWalletButton {
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  visibility: hidden;
+}
+
+#connectWalletButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(58, 123, 213, 0.5);
+}
+
+/* Dropdown Menu */
+.dropdown {
+  position: relative;
+}
+
+.dropbtn {
+  color: #ffffff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #010400;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  margin-top: 0.5rem;
+  z-index: 1;
+  border-radius: 5px;
+}
+
+.dropdown-content a {
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  display: block;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.dropdown-content a:hover {
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Header */
+header {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+header h1 {
+  font-size: 2rem;
+  color: #00d1ff;
+}
+
+header p {
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+/* Input Container */
+.input-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+input[type="text"] {
+  width: 50%;
+  padding: 0.8rem;
+  border-radius: 5px;
+  border: 1px solid #3a7bd5;
+  background-color: #000000;
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+input[type="text"]::placeholder {
+  color: #7a7a7a;
+}
+
+button#fetchNFTsButton {
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+button#fetchNFTsButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(58, 123, 213, 0.5);
+}
+
+/* NFT Display */
+#nftDisplay {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* 5 NFTs per row */
+  gap: 1.5rem;
+  margin: 2rem;
+  justify-items: center;
+}
+
+#nftDisplay .nft-item {
+  width: 180px; /* Fixed width */
+  height: 260px; /* Fixed height */
+  background-color: #000000;
+  border: 1px solid #3a7bd5;
+  border-radius: 10px;
+  padding: 0.5rem;
+  text-align: center;
+  color: #ffffff;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#nftDisplay .nft-item img {
+  width: 100%; /* Fit the container */
+  height: 140px; /* Fixed height for images */
+  object-fit: cover;
+  border-radius: 5px;
+  margin-bottom: 0.5rem;
+}
+
+#nftDisplay .nft-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(58, 123, 213, 0.5);
+}
+
+/* Pagination Buttons */
+#pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 2rem 0;
+}
+
+#pagination button {
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin: 0 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#pagination button:disabled {
+  background: #7a7a7a;
+  cursor: not-allowed;
+}
+
+#loadingIndicator {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #00d1ff;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 1024px) {
+  .nav-container {
+    flex-wrap: wrap;
+  }
+
+  #nftDisplay {
+    grid-template-columns: repeat(3, 1fr); /* 3 NFTs per row on tablets */
+  }
+
+  input[type="text"] {
+    width: 70%; /* Adjust input field width */
+  }
+}
+
+@media screen and (max-width: 768px) {
+  #nftDisplay {
+    grid-template-columns: repeat(2, 1fr); /* 2 NFTs per row on mobile */
+  }
+
+  .logo {
+    font-size: 1.5rem; /* Adjust logo size for smaller screens */
+  }
+
+  input[type="text"] {
+    width: 90%; /* Make input field responsive */
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .nav-container {
+    flex-direction: column; /* Stack navigation items */
+    align-items: center;
+  }
+
+  #nftDisplay {
+    grid-template-columns: 1fr; /* 1 NFT per row on very small screens */
+  }
+
+  input[type="text"] {
+    width: 100%; /* Full-width input field */
+  }
+
+  .logo {
+    font-size: 1.2rem;
+  }
+}
+#totalValue {
+  display: none;
+  font-size: 1.5rem; /* You can change the value here */
+  color: #00d1ff; /* Blue color */
+  text-align: center;
+  font-weight: bold; /* Makes the text bold */
+}
+
+</style>
+<script>
+  let currentPage = 1;
+  const itemsPerPage = 10; // Number of NFTs per page
+  let nftProjects = []; // To store all NFTs
+
+  // Conversion rate (ETH to USD)
+  const ETH_TO_USD = 1500; // Change this value based on the current conversion rate
+
+  // Function to fetch NFT data
+  async function fetchNFTData() {
+    const ethAddressInput = document.getElementById('ethAddressInput').value.trim();
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const nftDisplay = document.getElementById('nftDisplay');
+    const totalValueDisplay = document.getElementById('totalValue');
+    const pagination = document.getElementById('pagination');
+
+    // Clear previous results
+    nftDisplay.innerHTML = '';
+    totalValueDisplay.style.display = 'none';
+    totalValueDisplay.textContent = '';
+    pagination.style.display = 'none';
+
+    if (!ethAddressInput) {
+      alert('Please enter a valid Ethereum address.');
+      return;
+    }
+
+    loadingIndicator.style.display = 'block';
+
+    // API URL
+    const apiUrl = `https://openapiv1.coinstats.app/nft/wallet/${ethAddressInput}/assets?page=15&limit=100`;
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'X-API-KEY': 'zv8R+W/5jzIXxS4CFWfYSfBDasMjEMxw+00Su0RMhEE=',
+          accept: 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      loadingIndicator.style.display = 'none';
+
+      if (data.data && data.data.length > 0) {
+        nftProjects = data.data;
+        // Sort NFTs by floorPrice in descending order
+        nftProjects.sort((a, b) => b.floorPrice - a.floorPrice); 
+        calculateTotalValue(); // Calculate and display the total value
+        displayNFTPage(currentPage); // Display the first page
+        pagination.style.display = 'block'; // Show pagination controls
+      } else {
+        nftDisplay.innerHTML = '<p>No NFTs found for this address.</p>';
+      }
+    } catch (error) {
+      console.error('Error fetching NFT data:', error);
+      loadingIndicator.style.display = 'none';
+      nftDisplay.innerHTML = '<p>Error fetching NFT data. Please try again later.</p>';
+    }
+  }
+
+  // Function to calculate and display total value of NFTs
+  function calculateTotalValue() {
+    let totalValue = 0;
+
+    nftProjects.forEach((project) => {
+      const projectValue = project.floorPrice * project.assetsCount;
+      totalValue += projectValue;
+    });
+
+    const totalValueDisplay = document.getElementById('totalValue');
+    totalValueDisplay.style.display = 'block';
+    totalValueDisplay.style.color = '#00d1ff';  // Set the text color to blue
+    totalValueDisplay.textContent = `Your NFT Collection Worth: ${(totalValue).toFixed(2)} ETH`; // Display in USD
+  }
+
+  // Function to display a specific page of NFTs
+  function displayNFTPage(page) {
+    const nftDisplay = document.getElementById('nftDisplay');
+    nftDisplay.innerHTML = '';
+
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentItems = nftProjects.slice(startIndex, endIndex);
+
+    currentItems.forEach((project) => {
+      project.assets.forEach((asset) => {
+        const nftItem = document.createElement('div');
+        nftItem.className = 'nft-item';
+        // Truncate NFT name if it exceeds 30 characters
+        const truncatedName = asset.name.length > 20
+          ? `${asset.name.slice(0, 16)}...`
+          : asset.name;
+
+        nftItem.innerHTML = `
+          <img src="${asset.previewImg}" alt="${truncatedName}" style="width: 100%; border-radius: 8px;" />
+          <h3>${truncatedName}</h3>
+          <p>Price: ${project.floorPrice} ETH</p>
+        `;
+        nftDisplay.appendChild(nftItem);
+      });
+    });
+
+    updatePagination();
+  }
+
+  // Update pagination controls
+  function updatePagination() {
+    const totalPages = Math.ceil(nftProjects.length / itemsPerPage);
+
+    document.getElementById('prevPageButton').disabled = currentPage === 1;
+    document.getElementById('nextPageButton').disabled = currentPage === totalPages;
+    document.getElementById('firstPageButton').disabled = currentPage === 1;
+    document.getElementById('lastPageButton').disabled = currentPage === totalPages;
+
+    document.getElementById('currentPage').textContent = `Page ${currentPage}`;
+  }
+
+  // Pagination button listeners
+  document.getElementById('prevPageButton').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      displayNFTPage(currentPage);
+    }
+  });
+
+  document.getElementById('nextPageButton').addEventListener('click', () => {
+    const totalPages = Math.ceil(nftProjects.length / itemsPerPage);
+    if (currentPage < totalPages) {
+      currentPage++;
+      displayNFTPage(currentPage);
+    }
+  });
+
+  // Go to first page
+  document.getElementById('firstPageButton').addEventListener('click', () => {
+    currentPage = 1;
+    displayNFTPage(currentPage);
+  });
+
+  // Go to last page
+  document.getElementById('lastPageButton').addEventListener('click', () => {
+    const totalPages = Math.ceil(nftProjects.length / itemsPerPage);
+    currentPage = totalPages;
+    displayNFTPage(currentPage);
+  });
+
+  // Event Listener for the Fetch Button
+  document.getElementById('fetchNFTsButton').addEventListener('click', fetchNFTData);
+</script>
+
+</body>
+</html>

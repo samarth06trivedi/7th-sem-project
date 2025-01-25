@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ethereum Address Facts</title>
+ 
+</head>
+<body>
+
+  <nav>
+    <div class="nav-container">
+      <a href="main.html" class="logo">HASH TRACER</a>
+      <ul class="nav-links">
+        <li><a href="main.html">Home</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropbtn">Services ▼</a>
+          <div class="dropdown-content">
+            <a href="index.html">EVM Facts</a>
+            <a href="nft.html">NFT Holdings</a>
+            <a href="Portfolio.html">Portfolio Tracker</a> <!-- Placeholder for future -->
+          </div>
+        </li>
+        <li><button id="connectWalletButton">Connect Wallet</button></li>
+      </ul>
+    </div>
+  </nav>
+  
+
+  <div class="container">
+    <header>
+      <h1>EVM Address Facts</h1>
+      <p>Discover interesting facts about EVM addresses.</p>
+    </header>
+
+    <div class="input-container">
+      <input type="text" id="ethAddressInput" placeholder="Enter an Ethereum Address">
+      <button id="fetch_facts_button"onclick="fetchAddressFacts()">Get Facts</button>
+    </div>
+
+    <div id="loadingIndicator" style="display: none;">Loading...</div>
+
+    <div id="factsDisplay" style="display: none;">
+      <div id="factsList"></div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const connectWalletButton = document.getElementById("connectWalletButton");
+
+      connectWalletButton.addEventListener("click", async () => {
+        if (typeof window.ethereum !== "undefined") {
+          try {
+            const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+            const walletAddress = accounts[0];
+            connectWalletButton.textContent = "Connected";
+            connectWalletButton.style.backgroundColor = "#3a7bd5";
+            alert(`Wallet Connected: ${walletAddress}`);
+          } catch (error) {
+            console.error("Failed to connect wallet:", error);
+            alert("Error connecting wallet. Please try again.");
+          }
+        } else {
+          alert("MetaMask not found. Install it from https://metamask.io and try again.");
+        }
+      });
+
+      window.fetchAddressFacts = async () => {
+        const ethAddress = document.getElementById("ethAddressInput").value.trim();
+        const factsDisplay = document.getElementById("factsDisplay");
+        const factsList = document.getElementById("factsList");
+        const loadingIndicator = document.getElementById("loadingIndicator");
+
+        if (!ethAddress || !/^0x[a-fA-F0-9]{40}$/.test(ethAddress)) {
+          alert("Please enter a valid Ethereum address.");
+          return;
+        }
+
+        loadingIndicator.style.display = "block";
+        factsDisplay.style.display = "none";
+
+        try {
+          const response = await fetch('https://api.dune.com/api/v1/query/4528879/execute', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-dune-api-key': 'dSEwVB2vKEW3Sp7sDkx33GsWBBDLzWD0',
+            },
+            body: JSON.stringify({
+              query_parameters: { address: ethAddress },
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch data from Dune');
+          }
+
+          const postData = await response.json();
+          console.log('Dune API POST Response:', postData);
+
+          const executionId = postData.execution_id;
+
+          let isFinished = false;
+          let resultData = null;
+
+          while (!isFinished) {
+            const resultResponse = await fetch(`https://api.dune.com/api/v1/execution/${executionId}/results`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-dune-api-key': 'dSEwVB2vKEW3Sp7sDkx33GsWBBDLzWD0',
+              },
+            });
+
+            if (!resultResponse.ok) {
+              throw new Error('Failed to fetch results from Dune');
+            }
+
+            const resultDataResponse = await resultResponse.json();
+            console.log('Dune API GET Result:', resultDataResponse);
+
+            if (resultDataResponse.is_execution_finished) {
+              isFinished = true;
+              resultData = resultDataResponse.result.rows;
+            } else {
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+          }
+
+          loadingIndicator.style.display = "none";
+          factsDisplay.style.display = "block";
+
+          if (resultData.length > 0) {
+            const facts = resultData[0];
+            factsList.innerHTML = "";
+
+            const formatToIST = (timestamp) => {
+              const date = new Date(timestamp);
+              date.setHours(date.getHours() + 5);
+              date.setMinutes(date.getMinutes() + 30);
+              return date.toLocaleDateString("en-GB");
+            };
+
+            const factsArray = [
+              { label: "Blockchains used", value: facts.blockchains.join(", ") },
+              { label: "First blockchain funded", value: facts.first_funded_blockchain },
+              { label: "Funded by", value: facts.first_funded_by },
+              { label: "Funding Date", value: formatToIST(facts.first_tx_block_time) },
+              { label: "First transaction Date", value: formatToIST(facts.first_transfer_block_time) },
+              { label: "Most used blockchain", value: facts.max_nonce_blockchain },
+              { label: "Total on-chain transactions", value: facts.executed_tx_count },
+              { label: "Total volume", value: `$ ${facts.received_volume_usd.toFixed(2)}` },
+              { label: "Last on-chain activity", value: formatToIST(facts.last_tx_block_time) },
+            ];
+
+            const title = document.createElement('h2');
+            title.textContent = "Interesting Facts About Your EVM Address";
+            factsList.appendChild(title);
+
+            displayFactsLetterByLetter(factsArray);
+          } else {
+            alert("No data found for this Ethereum address.");
+          }
+        } catch (error) {
+          console.error("Error fetching data from Dune:", error);
+          loadingIndicator.style.display = "none";
+          alert("Error fetching data. Please try again.");
+        }
+      };
+    });
+
+    const chainLogos = {
+      "arbitrum": "https://cryptologos.cc/logos/arbitrum-arb-logo.png",
+      "scroll": "https://cryptologos.cc/logos/scroll-scroll-logo.png",
+      "base": "https://cryptologos.cc/logos/base-base-logo.png",
+      "avalanche_c": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+      "linea": "https://cryptologos.cc/logos/linea-linea-logo.png",
+      "zkevm": "https://cryptologos.cc/logos/zkevm-zkevm-logo.png",
+      "gnosis": "https://cryptologos.cc/logos/gnosis-gno-logo.png",
+      "optimism": "https://cryptologos.cc/logos/optimism-optimism-logo.png",
+      "bnb": "https://cryptologos.cc/logos/binance-coin-bnb-logo.png",
+      "zksync": "https://cryptologos.cc/logos/zksync-zksync-logo.png",
+      "ethereum": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Ethereum_Logo_2014.svg/1200px-Ethereum_Logo_2014.svg.png",
+      "fantom": "https://cryptologos.cc/logos/fantom-ftm-logo.png",
+      "polygon": "https://cryptologos.cc/logos/polygon-matic-logo.png"
+    };
+
+    const renderBlockchains = (blockchains) => {
+      const container = document.getElementById('blockchains-container');
+      blockchains.forEach(chain => {
+        const chainLogo = chainLogos[chain] || null;
+        const chainElement = document.createElement('div');
+        chainElement.classList.add('chain-item');
+        chainElement.innerHTML = chainLogo
+          ? `<span>${chain} <img src="${chainLogo}" alt="${chain}" class="chain-logo"></span>`
+          : `<span>${chain}</span>`;
+        container.appendChild(chainElement);
+      });
+    };
+
+    const displayFactsLetterByLetter = (factsArray) => {
+  const factsList = document.getElementById('factsList');
+  const factsDisplay = document.getElementById('factsDisplay');
+  let totalDelay = 0;
+  let totalFacts = factsArray.length;
+  let completedFacts = 0;
+
+  factsArray.forEach((fact, index) => {
+    const fullText = `<span class="title">${fact.label}:</span> <span class="value">${fact.value}</span>`;
+    const animationTimePerLetter = 10;
+    const factAnimationTime = fullText.length * animationTimePerLetter;
+
+    setTimeout(() => {
+      const factItem = document.createElement('div');
+      factItem.classList.add('fact');
+      factsList.appendChild(factItem);
+
+      let currentText = "";
+      let i = 0;
+
+      // Add the letter-by-letter animation
+      const interval = setInterval(() => {
+        currentText += fullText[i];
+        factItem.innerHTML = currentText;
+        i++;
+
+        // Once the text is fully printed, add the border
+        if (i === fullText.length) {
+          factItem.style.border = '0.35px solid #ddd'; // Add the border after the text is finished
+          clearInterval(interval);
+          completedFacts++;
+
+          // When all facts are done, add the border to the entire #factsDisplay
+          if (completedFacts === totalFacts) {
+            setTimeout(() => {
+            factsDisplay.style.border = '1px solid #ddd'; // Add border to facts display container
+            }, 1000);
+          }
+        }
+      }, animationTimePerLetter);
+    }, totalDelay);
+
+    totalDelay += factAnimationTime + 500; // Delay before starting next fact's animation
+  });
+};
+
+
+  </script>
+
+<style>
+ body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #010400; /* Dark background */
+  color: #ffffff; /* White text for visibility */
+}
+
+/* Navigation Bar */
+nav {
+  width: 100%;
+  background-color: #000000;
+  padding: 1rem;
+  box-shadow: 0 0 15px #00d1ff;
+  position: sticky; /* Keep the navigation bar fixed at the top */
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto; /* Center the navigation bar */
+}
+
+.logo {
+  color: #00d1ff;
+  font-size: 1.8rem; /* Adjusted for visibility */
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.logo:hover {
+  text-shadow: 0 0 15px #00d1ff, 0 0 30px #00d1ff, 0 0 45px #00d1ff; /* Glowing effect */
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+  color: #00d1ff;
+}
+
+#connectWalletButton {
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#connectWalletButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(58, 123, 213, 0.5);
+}
+
+/* Dropdown Menu */
+.dropdown {
+  position: relative;
+}
+
+.dropbtn {
+  color: #ffffff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #010400;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  margin-top: 0.5rem;
+  z-index: 1;
+  border-radius: 5px;
+}
+
+.dropdown-content a {
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  display: block;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.dropdown-content a:hover {
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Header */
+header {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+header h1 {
+  font-size: 2rem;
+  color: #00d1ff;
+}
+
+header p {
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+/* Input Container */
+.input-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+input[type="text"] {
+  width: 50%;
+  padding: 0.8rem;
+  border-radius: 5px;
+  border: 1px solid #3a7bd5;
+  background-color: #000000;
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+input[type="text"]::placeholder {
+  color: #7a7a7a;
+}
+
+button#fetch_facts_button {
+  background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+  color: #ffffff;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+button#fetch_facts_button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(58, 123, 213, 0.5);
+}
+
+  #factsDisplay {
+    
+    margin-top: 20px;
+    text-align: left;
+    padding: 20px;
+    background-color: #010400;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  }
+
+  #factsList {
+    
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .fact {
+    
+    background-color: #010400;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .fact span.title {
+    color: #ffffff;
+    font-weight: bold;
+  }
+
+  .fact span.value {
+    color: #00d1ff;
+  }
+
+  #loadingIndicator {
+    text-align: center;
+    color: #00d1ff;
+    font-size: 1.2rem;
+    margin-top: 20px;
+  }
+
+  #interesting_facts {
+    background: linear-gradient(90deg, #00d1ff, #3a7bd5);
+    color: #ffffff;
+    font-size: 1.2rem;
+    padding: 15px 30px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px;
+    text-align: center;
+    display: inline-block;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  #interesting_facts:hover {
+    background-color: #3a7bd5;
+    transform: scale(1.05);
+  }
+
+  @media (max-width: 768px) {
+    #interesting_facts {
+      font-size: 1rem;
+      padding: 12px 25px;
+    }
+  }
+
+  .chain-logo {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+    margin-left: 5px;
+  }
+
+  .chain-item {
+    margin-bottom: 8px;
+  }
+
+  .hidden {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .fade-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+
+
+</style>
+</body>
+</html>
